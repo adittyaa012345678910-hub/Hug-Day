@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hug Day 🫂</title>
+
+<style>
+/* ===== BASE ===== */
+body{
+  margin:0;
+  height:100vh;
+  background: radial-gradient(circle at top, #ffd6e8, #f7a8c7);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+  font-family:Georgia,serif;
+}
+
+/* SOFT ROMANTIC GLOW */
+body::before{
+  content:"";
+  position:fixed;
+  inset:0;
+  background: radial-gradient(circle at center,
+    rgba(255,255,255,.35),
+    transparent 70%);
+  pointer-events:none;
+}
+
+/* FLOATING HEARTS */
+.heart{
+  position:fixed;
+  font-size:14px;
+  color:#ff5f8a;
+  opacity:.6;
+  animation:float 10s linear infinite;
+  pointer-events:none;
+}
+@keyframes float{
+  from{ transform:translateY(110vh) scale(.8); opacity:0; }
+  20%{ opacity:.6; }
+  to{ transform:translateY(-20vh) scale(1.2); opacity:0; }
+}
+
+/* SCENE */
+.scene{
+  width:min(92vw,520px);
+  text-align:center;
+  position:relative;
+  z-index:2;
+}
+
+/* IMAGE */
+.scene img{
+  width:100%;
+  border-radius:16px;
+  box-shadow:0 25px 55px rgba(0,0,0,.35);
+  transition:opacity .4s ease, transform .5s ease;
+}
+
+/* RUN ANIMATION */
+.run{
+  animation:run 1.2s ease-out forwards;
+}
+@keyframes run{
+  from{ transform:translateX(-80px); opacity:0; }
+  to{ transform:translateX(0); opacity:1; }
+}
+
+/* BUTTON */
+.hug-btn{
+  margin-top:22px;
+  background:#ff5f8a;
+  color:white;
+  border:none;
+  padding:14px 26px;
+  border-radius:28px;
+  font-size:18px;
+  cursor:pointer;
+  box-shadow:0 0 12px #ff5f8a, 0 0 28px rgba(255,95,138,.6);
+  transition:.25s;
+}
+.hug-btn:active{ transform:scale(.95); }
+.hug-btn.hide{ opacity:0; pointer-events:none; }
+
+/* MESSAGE */
+.message{
+  margin-top:16px;
+  color:#5a2135;
+  font-size:18px;
+  opacity:0;
+  transition:.4s;
+}
+</style>
+</head>
+
+<body>
+
+<script>
+/* ================= INTERACTIVE HEART FIELD ================= */
+
+const HEART_COUNT = 55;   // increased hearts
+const hearts = [];
+
+for(let i=0;i<HEART_COUNT;i++){
+  const h=document.createElement("div");
+  h.className="heart";
+  h.innerHTML="❤";
+
+  h.x = Math.random()*window.innerWidth;
+  h.y = Math.random()*window.innerHeight;
+  h.vx = (Math.random()-.5)*0.25;
+  h.vy = -.2 - Math.random()*0.4;
+  h.size = 12 + Math.random()*10;
+
+  h.style.fontSize = h.size+"px";
+  h.style.left = h.x+"px";
+  h.style.top = h.y+"px";
+  h.style.opacity = .3 + Math.random()*.5;
+
+  document.body.appendChild(h);
+  hearts.push(h);
+}
+
+/* ===== FLOAT MOTION ===== */
+function animateHearts(){
+  for(const h of hearts){
+
+    h.x += h.vx;
+    h.y += h.vy;
+
+    /* wrap vertically */
+    if(h.y < -20){
+      h.y = window.innerHeight + 20;
+      h.x = Math.random()*window.innerWidth;
+    }
+
+    h.style.transform = `translate(${h.x}px, ${h.y}px)`;
+  }
+
+  requestAnimationFrame(animateHearts);
+}
+animateHearts();
+
+/* ===== CURSOR INTERACTION ===== */
+document.addEventListener("mousemove", e=>{
+  const mx = e.clientX;
+  const my = e.clientY;
+
+  for(const h of hearts){
+    const dx = h.x - mx;
+    const dy = h.y - my;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+
+    if(dist < 120){   // interaction radius
+      const force = (120 - dist)/120;
+
+      h.x += dx * 0.03 * force;
+      h.y += dy * 0.03 * force;
+
+      h.style.opacity = .9;
+      h.style.transform += " scale(1.15)";
+    } else {
+      h.style.opacity = .5;
+    }
+  }
+});
+</script>
+
+<div class="scene">
+  <img id="sceneImg" src="lonely.png">
+  <button id="hugBtn" class="hug-btn">Want a hug?</button>
+  <div id="msg" class="message"></div>
+</div>
+
+<audio id="bgm" src="bgm.mp3" loop></audio>
+
+<script>
+const img = document.getElementById("sceneImg");
+const btn = document.getElementById("hugBtn");
+const msg = document.getElementById("msg");
+const bgm = document.getElementById("bgm");
+
+let clicks = 0;
+let running = false;
+
+/* ===== LINES ===== */
+const lines = [
+"Hey… I’m here. Come closer… take ur hug.",
+"Hmm… u called me? I knew u needed me.",
+"Again? Hehe… someone’s really missing me.",
+"Careful, shorty… if u keep pulling me closer, I might not leave.",
+"Come here… let me hold u properly this time.",
+"Feel that? I’m hugging u tighter now… safe.",
+"Shhh… stay like this… right here with me.",
+"No running… ur exactly where u belong.",
+"My little potato… always finding her way back to my arms.",
+"There… warm, safe, loved. Whenever u need me… I come."
+];
+
+btn.onclick = () => {
+  if(running) return;
+  running = true;
+  clicks++;
+
+  btn.classList.add("hide");
+  bgm.play().catch(()=>{});
+
+  /* RUN */
+  img.style.opacity=0;
+  setTimeout(()=>{
+    img.src="run.png";
+    img.classList.add("run");
+    img.style.opacity=1;
+  },250);
+
+  /* HUG */
+  setTimeout(()=>{
+    img.style.opacity=0;
+    setTimeout(()=>{
+      img.src="hug.png";
+      img.classList.remove("run");
+      img.style.opacity=1;
+      showMessage();
+    },250);
+  },1400);
+};
+
+function showMessage(){
+  const index = Math.min(clicks-1, 9);
+  msg.innerHTML = lines[index];
+  msg.style.opacity=1;
+
+  /* +2s delay AFTER message visible */
+  setTimeout(resetScene, 5400);
+}
+
+function resetScene(){
+  msg.style.opacity=0;
+  img.style.opacity=0;
+
+  setTimeout(()=>{
+    img.src="lonely.png";
+    img.style.opacity=1;
+    btn.classList.remove("hide");
+    running=false;
+  },300);
+}
+</script>
+
+</body>
+</html>
